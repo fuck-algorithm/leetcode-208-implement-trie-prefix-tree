@@ -1,0 +1,74 @@
+.trie-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+  border-radius: 8px;
+  border: 1px solid #2d3748;
+  overflow: hidden;
+}
+
+.canvas-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+.reset-view-btn {
+  padding: 4px 10px;
+  background: rgba(45, 55, 72, 0.9);
+  border: 1px solid #4a5568;
+  border-radius: 4px;
+  color: #e2e8f0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reset-view-btn:hover {
+  background: rgba(74, 85, 104, 0.9);
+  border-color: #63b3ed;
+}
+
+.zoom-level {
+  padding: 4px 8px;
+  background: rgba(45, 55, 72, 0.9);
+  border-radius: 4px;
+  color: #a0aec0;
+  font-size: 11px;
+}
+
+.step-info {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  padding: 10px 14px;
+  background: rgba(26, 26, 46, 0.95);
+  border: 1px solid #4a5568;
+  border-radius: 8px;
+  z-index: 10;
+}
+
+.step-description {
+  color: #e2e8f0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* 节点动画 */
+.trie-canvas svg circle {
+  transition: fill 0.3s, stroke 0.3s, stroke-width 0.3s;
+}
+
+.trie-canvas svg line {
+  transition: stroke 0.3s, stroke-width 0.3s;
+}
+
+.trie-canvas svg text {
+  transition: fill 0.3s;
+}

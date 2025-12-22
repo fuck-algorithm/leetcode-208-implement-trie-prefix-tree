@@ -1,0 +1,121 @@
+.code-panel {
+  display: flex;
+  flex-direction: column;
+  background: #1a1a2e;
+  border-radius: 8px;
+  border: 1px solid #2d3748;
+  overflow: hidden;
+  height: 100%;
+}
+
+.code-panel.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a0aec0;
+}
+
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #16213e;
+  border-bottom: 1px solid #2d3748;
+}
+
+.language-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.lang-tab {
+  padding: 4px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #a0aec0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.lang-tab:hover {
+  color: #e2e8f0;
+  background: #2d3748;
+}
+
+.lang-tab.active {
+  color: #63b3ed;
+  background: #2d3748;
+  border-color: #63b3ed;
+}
+
+.code-content {
+  flex: 1;
+  overflow: auto;
+  padding: 8px 0;
+  font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.code-line {
+  display: flex;
+  padding: 1px 12px;
+  transition: background-color 0.2s;
+}
+
+.code-line.highlighted {
+  background: rgba(99, 179, 237, 0.15);
+  border-left: 3px solid #63b3ed;
+  padding-left: 9px;
+}
+
+.line-number {
+  width: 32px;
+  color: #4a5568;
+  text-align: right;
+  padding-right: 12px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.code-line.highlighted .line-number {
+  color: #63b3ed;
+}
+
+.line-content {
+  flex: 1;
+  color: #e2e8f0;
+  white-space: pre;
+}
+
+.variable-display {
+  color: #68d391;
+  font-style: italic;
+  margin-left: 16px;
+  opacity: 0.9;
+}
+
+/* 语法高亮 */
+.keyword {
+  color: #f687b3;
+}
+
+.string {
+  color: #68d391;
+}
+
+.comment {
+  color: #718096;
+  font-style: italic;
+}
+
+.number {
+  color: #f6ad55;
+}
+
+.function {
+  color: #63b3ed;
+}
