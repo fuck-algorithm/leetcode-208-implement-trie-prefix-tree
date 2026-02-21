@@ -21,7 +21,7 @@ const WeChatFloat: React.FC = () => {
         <div className="qr-popup">
           <div className="qr-content">
             <img 
-              src="https://cdn.jsdelivr.net/gh/JSREI/.github/profile/README.assets/image-20231030132026541-7614065.png"
+              src="/leetcode-208-implement-trie-prefix-tree/wechat-qr.png"
               alt="微信交流群"
               className="qr-image"
             />

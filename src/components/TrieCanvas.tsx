@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import * as d3 from 'd3';
 import type { VisualNode, AlgorithmStep, Annotation } from '../types';
 import './TrieCanvas.css';
@@ -23,81 +23,6 @@ const TrieCanvas: React.FC<TrieCanvasProps> = ({ currentStep }) => {
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-
-  // 计算树的布局
-  const calculateLayout = useCallback((node: VisualNode | null, depth: number = 0, index: number = 0, siblingCount: number = 1): TreeNode | null => {
-    if (!node) return null;
-
-    const horizontalSpacing = 70;
-    const verticalSpacing = 80;
-    
-    // 计算子节点
-    const children: TreeNode[] = [];
-    node.children.forEach((child, i) => {
-      const childNode = calculateLayout(child, depth + 1, i, node.children.length);
-      if (childNode) children.push(childNode);
-    });
-
-    // 计算当前节点位置
-    let x = 0;
-    if (children.length > 0) {
-      // 父节点居中于子节点
-      const leftMost = children[0].x;
-      const rightMost = children[children.length - 1].x;
-      x = (leftMost + rightMost) / 2;
-    } else {
-      x = (index - (siblingCount - 1) / 2) * horizontalSpacing;
-    }
-
-    return {
-      id: node.id,
-      char: node.char,
-      isEnd: node.isEnd,
-      x,
-      y: depth * verticalSpacing,
-      children,
-      highlighted: currentStep?.highlightedNodes.includes(node.id) || false,
-    };
-  }, [currentStep]);
-
-  // 调整树的位置避免重叠
-  const adjustTreePositions = useCallback((root: TreeNode | null): TreeNode | null => {
-    if (!root) return null;
-
-    const nodePositions: Map<number, number[]> = new Map();
-    
-    const collectPositions = (node: TreeNode) => {
-      const level = Math.round(node.y / 80);
-      if (!nodePositions.has(level)) {
-        nodePositions.set(level, []);
-      }
-      nodePositions.get(level)!.push(node.x);
-      node.children.forEach(collectPositions);
-    };
-
-    const adjustNode = (node: TreeNode, offset: number): TreeNode => {
-      return {
-        ...node,
-        x: node.x + offset,
-        children: node.children.map(child => adjustNode(child, offset)),
-      };
-    };
-
-    collectPositions(root);
-
-    // 找到最小x值，确保树居中
-    let minX = Infinity;
-    let maxX = -Infinity;
-    nodePositions.forEach(positions => {
-      positions.forEach(x => {
-        minX = Math.min(minX, x);
-        maxX = Math.max(maxX, x);
-      });
-    });
-
-    const centerOffset = -(minX + maxX) / 2;
-    return adjustNode(root, centerOffset);
-  }, []);
 
   // 渲染树
   useEffect(() => {
@@ -124,6 +49,81 @@ const TrieCanvas: React.FC<TrieCanvasProps> = ({ currentStep }) => {
         .text('请选择示例数据或输入操作序列开始演示');
       return;
     }
+
+    // 计算树的布局 - 内联函数避免依赖问题
+    const calculateLayout = (node: VisualNode | null, depth: number = 0, index: number = 0, siblingCount: number = 1): TreeNode | null => {
+      if (!node) return null;
+
+      const horizontalSpacing = 70;
+      const verticalSpacing = 80;
+      
+      // 计算子节点
+      const children: TreeNode[] = [];
+      node.children.forEach((child, i) => {
+        const childNode = calculateLayout(child, depth + 1, i, node.children.length);
+        if (childNode) children.push(childNode);
+      });
+
+      // 计算当前节点位置
+      let x = 0;
+      if (children.length > 0) {
+        // 父节点居中于子节点
+        const leftMost = children[0].x;
+        const rightMost = children[children.length - 1].x;
+        x = (leftMost + rightMost) / 2;
+      } else {
+        x = (index - (siblingCount - 1) / 2) * horizontalSpacing;
+      }
+
+      return {
+        id: node.id,
+        char: node.char,
+        isEnd: node.isEnd,
+        x,
+        y: depth * verticalSpacing,
+        children,
+        highlighted: currentStep.highlightedNodes.includes(node.id),
+      };
+    };
+
+    // 调整树的位置避免重叠 - 内联函数避免依赖问题
+    const adjustTreePositions = (root: TreeNode | null): TreeNode | null => {
+      if (!root) return null;
+
+      const nodePositions: Map<number, number[]> = new Map();
+      
+      const collectPositions = (node: TreeNode) => {
+        const level = Math.round(node.y / 80);
+        if (!nodePositions.has(level)) {
+          nodePositions.set(level, []);
+        }
+        nodePositions.get(level)!.push(node.x);
+        node.children.forEach(collectPositions);
+      };
+
+      const adjustNode = (node: TreeNode, offset: number): TreeNode => {
+        return {
+          ...node,
+          x: node.x + offset,
+          children: node.children.map(child => adjustNode(child, offset)),
+        };
+      };
+
+      collectPositions(root);
+
+      // 找到最小x值，确保树居中
+      let minX = Infinity;
+      let maxX = -Infinity;
+      nodePositions.forEach(positions => {
+        positions.forEach(x => {
+          minX = Math.min(minX, x);
+          maxX = Math.max(maxX, x);
+        });
+      });
+
+      const centerOffset = -(minX + maxX) / 2;
+      return adjustNode(root, centerOffset);
+    };
 
     let root = calculateLayout(currentStep.trieSnapshot, 0, 0, 1);
     root = adjustTreePositions(root);
@@ -269,7 +269,7 @@ const TrieCanvas: React.FC<TrieCanvasProps> = ({ currentStep }) => {
       });
     }
 
-  }, [currentStep, transform, calculateLayout, adjustTreePositions]);
+  }, [currentStep, transform]);
 
   // 鼠标拖拽
   const handleMouseDown = (e: React.MouseEvent) => {

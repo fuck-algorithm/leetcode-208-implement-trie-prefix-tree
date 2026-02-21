@@ -81,6 +81,17 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
     setShowSpeedMenu(false);
   };
 
+  // 更新进度
+  const updateProgress = useCallback((e: React.MouseEvent | MouseEvent) => {
+    if (!progressRef.current || playbackState.totalSteps === 0) return;
+    
+    const rect = progressRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    const percentage = x / rect.width;
+    const step = Math.round(percentage * (playbackState.totalSteps - 1));
+    onSeek(step);
+  }, [playbackState.totalSteps]);
+
   // 进度条拖拽
   const handleProgressMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
@@ -107,16 +118,6 @@ const PlaybackControls: React.FC<PlaybackControlsProps> = ({
       window.removeEventListener('mouseup', handleProgressMouseUp);
     };
   }, [isDragging, handleProgressMouseMove, handleProgressMouseUp]);
-
-  const updateProgress = (e: React.MouseEvent | MouseEvent) => {
-    if (!progressRef.current || playbackState.totalSteps === 0) return;
-    
-    const rect = progressRef.current.getBoundingClientRect();
-    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-    const percentage = x / rect.width;
-    const step = Math.round(percentage * (playbackState.totalSteps - 1));
-    onSeek(step);
-  };
 
   const progress = playbackState.totalSteps > 0
     ? (playbackState.currentStep / (playbackState.totalSteps - 1)) * 100
