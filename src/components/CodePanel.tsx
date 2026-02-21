@@ -103,9 +103,39 @@ const CodePanel: React.FC<CodePanelProps> = ({
 
 // 简单的语法高亮
 function highlightSyntax(code: string, language: ProgrammingLanguage): string {
+  // 首先转义HTML特殊字符
   let result = escapeHtml(code);
   
-  // 关键字
+  // 用于保存需要保护的内容（字符串、注释）
+  const protectedBlocks: string[] = [];
+  
+  // 保存代码块的函数，返回占位符
+  const protectBlock = (content: string, className: string): string => {
+    protectedBlocks.push(`<span class="${className}">${content}</span>`);
+    return `\x00${protectedBlocks.length - 1}\x00`;
+  };
+  
+  // 步骤1: 保护字符串（在转义后的文本中，引号已经是 &quot;）
+  // 双引号字符串: &quot;...&quot;
+  result = result.replace(/&quot;(?:[^&]|&(?!quot;))*&quot;/g, (match) => {
+    return protectBlock(match, 'string');
+  });
+  
+  // 单引号字符串: &#x27;...&#x27; 或 &apos;...&apos;
+  result = result.replace(/(?:&#x27;|&apos;)(?:[^&]|&(?!#x27;|apos;))*(?:&#x27;|&apos;)/g, (match) => {
+    return protectBlock(match, 'string');
+  });
+  
+  // 步骤2: 保护注释
+  if (language === 'python') {
+    // Python: # 开头到行尾
+    result = result.replace(/(#.*)$/gm, (match) => protectBlock(match, 'comment'));
+  } else {
+    // Java/JavaScript/Go: // 开头到行尾
+    result = result.replace(/(\/\/.*)$/gm, (match) => protectBlock(match, 'comment'));
+  }
+  
+  // 步骤3: 高亮关键字（不会包含引号，因为已被保护或转义）
   const keywords: Record<ProgrammingLanguage, string[]> = {
     java: ['class', 'public', 'private', 'void', 'boolean', 'return', 'new', 'this', 'null', 'for', 'if', 'int', 'char', 'String'],
     python: ['class', 'def', 'self', 'return', 'None', 'for', 'in', 'if', 'not', 'is', 'and', 'True', 'False', 'str', 'bool'],
@@ -113,27 +143,19 @@ function highlightSyntax(code: string, language: ProgrammingLanguage): string {
     javascript: ['class', 'constructor', 'const', 'let', 'return', 'new', 'this', 'null', 'for', 'of', 'if'],
   };
   
-  // 高亮关键字
   for (const keyword of keywords[language]) {
     const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
     result = result.replace(regex, '<span class="keyword">$1</span>');
   }
   
-  // 高亮字符串
-  result = result.replace(/(["'])(.*?)\1/g, '<span class="string">$1$2$1</span>');
-  
-  // 高亮注释
-  if (language === 'python') {
-    result = result.replace(/(#.*)$/gm, '<span class="comment">$1</span>');
-  } else {
-    result = result.replace(/(\/\/.*)$/gm, '<span class="comment">$1</span>');
-  }
-  
-  // 高亮数字
+  // 步骤4: 高亮数字
   result = result.replace(/\b(\d+)\b/g, '<span class="number">$1</span>');
   
-  // 高亮函数名
+  // 步骤5: 高亮函数名（匹配 标识符( 的模式）
   result = result.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g, '<span class="function">$1</span>(');
+  
+  // 步骤6: 恢复被保护的块
+  result = result.replace(/\x00(\d+)\x00/g, (_, index) => protectedBlocks[parseInt(index)]);
   
   return result;
 }
